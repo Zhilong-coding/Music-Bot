@@ -6,7 +6,7 @@ import os
 from youtube_dl import YoutubeDL
 import asyncio
 from datetime import datetime, timedelta
-from dotenv import load_dotenv()
+from dotenv import load_dotenv
 
 load_dotenv()
 
