@@ -344,5 +344,29 @@ async def queuelist(ctx):
     for x in range(len(song_queue)):
         await ctx.send(f"{x+1}. {song_queue[x]}")
 
+@client.command(aliases=['r'])
+async def remove(ctx, *args):
+    try:
+        x = int(' '.join(args))
+    except:
+        ctx.send(">>> Enter a number")
+    temp = song_queue[x-1]
+    del song_queue[x-1]
+    ctx.send(f"{temp} has been removed from queue")
+
+@client.command(aliases=['switch'])
+async def replace(ctx, *args):
+    fullstring =  ' '.join(args)
+    try:
+        origin = int(fullstring[0])-1
+        target = int(fullstring[2])-1
+    except:
+        ctx.send(">>> Message needs to be 2 numbers with space in between e.g. \"3 1\"")
+    temp = song_queue[target]
+    song_queue[target] = song_queue[origin]
+    song_queue[origin] = temp
+
+    ctx.send(f"Song {fullstring[0]} and {fullstring[2]}has been switched")
+
 
 client.run(os.getenv('TOKEN'))
