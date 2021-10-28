@@ -352,7 +352,7 @@ async def remove(ctx, *args):
         ctx.send(">>> Enter a number")
     temp = song_queue[x-1]
     del song_queue[x-1]
-    ctx.send(f"{temp} has been removed from queue")
+    await ctx.send(f"{temp} has been removed from queue")
 
 @client.command(aliases=['switch'])
 async def replace(ctx, *args):
@@ -366,7 +366,7 @@ async def replace(ctx, *args):
     song_queue[target] = song_queue[origin]
     song_queue[origin] = temp
 
-    ctx.send(f"Song {fullstring[0]} and {fullstring[2]}has been switched")
+    await ctx.send(f"Song {fullstring[0]} and {fullstring[2]}has been switched")
 
 
 client.run(os.getenv('TOKEN'))
