@@ -15,7 +15,7 @@ song = []
 client = commands.Bot(command_prefix="!", case_insensitive=True)
 
 ydl_opts = {
-    'format': 'worstaudio',
+    'format': 'bestaudio',
     'noplaylist': True,
     'ignoreerrors': True,
     'logtostderr': False,
