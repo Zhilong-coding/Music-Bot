@@ -6,9 +6,7 @@ import os
 from youtube_dl import YoutubeDL
 import asyncio
 from datetime import datetime, timedelta
-from dotenv import load_dotenv
 
-load_dotenv()
 
 song_queue = []
 song = []
@@ -369,4 +367,4 @@ async def replace(ctx, *args):
     await ctx.send(f"Song {fullstring[0]} and {fullstring[2]} has been switched")
 
 
-client.run(os.environ.get('TOKEN'))
+client.run(os.environ['TOKEN'])
