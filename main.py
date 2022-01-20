@@ -369,4 +369,4 @@ async def replace(ctx, *args):
     await ctx.send(f"Song {fullstring[0]} and {fullstring[2]} has been switched")
 
 
-client.run(os.getenv('TOKEN'))
+client.run(os.environ.get('TOKEN'))
