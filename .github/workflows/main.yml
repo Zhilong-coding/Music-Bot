@@ -29,6 +29,5 @@ jobs:
       - name: Run env
         env:
             TOKEN: ${{ secrets.TOKEN }}
-            password: ${{ secrets.password }}
         run:
           python main.py
