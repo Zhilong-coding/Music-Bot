@@ -36,19 +36,7 @@ async def on_ready():
 
 @client.event(aliases=['h'])
 async def help(ctx, *args):
-    await ctx.send('
-                   !play
-                   !skip
-                   !playnext
-                   !playskip
-                   !queuelist
-                   !replace
-                   !remove
-                   !pause
-                   !resume
-                   !stop
-                   !leave
-                   ')
+    await ctx.send('!play\n!skip\n!playnext\n!playskip\n!queuelist\n!replace\n!remove\n!pause\n!resume\n!stop\n!leave')
     
     
 @client.command(aliases=['p', 'pl', 'pla', 'sing', 'music', 'song', 'adin'])
