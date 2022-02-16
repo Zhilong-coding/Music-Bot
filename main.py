@@ -34,7 +34,7 @@ async def on_ready():
     print("Bot is now online...")
     await client.change_presence(activity=discord.Game(name="TAKO | Use !help"))
 
-@client.event(aliases=['h'])
+@client.command(aliases=['h'])
 async def help(ctx, *args):
     await ctx.send('!play\n!skip\n!playnext\n!playskip\n!queuelist\n!replace\n!remove\n!pause\n!resume\n!stop\n!leave')
     
