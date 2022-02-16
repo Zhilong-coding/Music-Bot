@@ -32,9 +32,25 @@ FFMPEG_OPTIONS = {
 @client.event
 async def on_ready():
     print("Bot is now online...")
-    await client.change_presence(activity=discord.Game(name="TAKO | !play"))
+    await client.change_presence(activity=discord.Game(name="TAKO | Use !help"))
 
-
+@client.event(aliases=['h'])
+async def help(ctx, *args):
+    await ctx.send('
+                   !play
+                   !skip
+                   !playnext
+                   !playskip
+                   !queuelist
+                   !replace
+                   !remove
+                   !pause
+                   !resume
+                   !stop
+                   !leave
+                   ')
+    
+    
 @client.command(aliases=['p', 'pl', 'pla', 'sing', 'music', 'song', 'adin'])
 async def play(ctx, *args):
     url = ' '.join(args)
