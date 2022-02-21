@@ -10,7 +10,7 @@ from dotenv import load_dotenv
 
 load_dotenv()
 
-song_queue = []
+song_queue = ["defaut"]
 song = []
 client = commands.Bot(command_prefix="!", case_insensitive=True)
 
@@ -36,7 +36,7 @@ async def on_ready():
 
 @client.command(aliases=["p", "pl", "pla", "sing", "music", "song", "adin"])
 async def play(ctx, *args):
-    url = " ".join(args)
+    url = ' '.join(args)
     global song_queue
     voice = get(client.voice_clients, guild=ctx.guild)
     channel = ctx.message.author.voice.channel
@@ -55,7 +55,7 @@ async def play(ctx, *args):
     try:
         if not voice.is_playing() and not voice.is_paused():
             with YoutubeDL(ydl_opts) as ydl:
-                info = ydl.extract_info("'" + song_queue[0] + "'", download=False)
+                info = ydl.extract_info(song_queue[1], download=False)
             if info.get("url", None):
                 data = info
             else:
@@ -97,7 +97,7 @@ async def play(ctx, *args):
         else:
             with YoutubeDL(ydl_opts) as ydl:
                 info = ydl.extract_info(
-                    "'" + song_queue[len(song_queue) - 1] + "'", download=False
+                    song_queue[-1], download=False
                 )
                 if info.get("url", None):
                     data = info
@@ -128,7 +128,7 @@ async def play(ctx, *args):
                 await ctx.send(embed=embed)
                 song.clear()
     except Exception as e:
-        await ctx.send(f"Something Went doodoo")
+        del song_queue[-1]
         await ctx.send(e)
         return
 
@@ -168,9 +168,9 @@ async def stop(ctx):
 
 def play_next(ctx):
     voice = get(client.voice_clients, guild=ctx.guild)
-    if len(song_queue) > 0:
+    if len(song_queue) > 1:
         with YoutubeDL(ydl_opts) as ydl:
-            info = ydl.extract_info("'" + song_queue[0] + "'", download=False)
+            info = ydl.extract_info(song_queue[1], download=False)
             if info.get("url", None):
                 data = info
             else:
@@ -235,7 +235,7 @@ async def playskip(ctx, *args):
         song_queue.clear()
         song_queue.append(url)
         with YoutubeDL(ydl_opts) as ydl:
-            info = ydl.extract_info("'" + song_queue[0] + "'", download=False)
+            info = ydl.extract_info(song_queue[1], download=False)
             if info.get("url", None):
                 data = info
             else:
@@ -279,9 +279,9 @@ async def playskip(ctx, *args):
 async def playnext(ctx, *args):
     url = " ".join(args)
     song_queue.append(url)
-    song_queue.insert(0, song_queue.pop())
+    song_queue.insert(1, song_queue.pop())
     with YoutubeDL(ydl_opts) as ydl:
-        info = ydl.extract_info("'" + song_queue[0] + "'", download=False)
+        info = ydl.extract_info(song_queue[1], download=False)
         if info.get("url", None):
             data = info
         else:
@@ -315,8 +315,11 @@ async def playnext(ctx, *args):
 
 @client.command(aliases=["q"])
 async def queuelist(ctx):
-    for x in range(len(song_queue)):
-        await ctx.send(f"{x+1}. {song_queue[x]}")
+    await ctx.send(">>Now Playing")
+    await ctx.send(f"{0}. {song_queue[0]}")
+    await ctx.send(">>Up Next")
+    for x in range(1,len(song_queue)):
+        await ctx.send(f"{x}. {song_queue[x]}")
 
 
 @client.command(aliases=["r"])
@@ -325,9 +328,10 @@ async def remove(ctx, *args):
         x = int(" ".join(args))
     except:
         ctx.send(">>> Enter a number")
-    temp = (song_queue[x - 1]).upper()
-    del song_queue[x - 1]
-    await ctx.send(f"{temp} has been removed from queue")
+    if len(song_queue) > 1:
+        temp = (song_queue[x]).upper()
+        del song_queue[x]
+        await ctx.send(f"{temp} has been removed from queue")
 
 
 @client.command(aliases=["switch"])
