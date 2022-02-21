@@ -10,8 +10,7 @@ from dotenv import load_dotenv
 
 load_dotenv()
 
-song_queue = []
-song = []
+
 client = commands.Bot(command_prefix="!", case_insensitive=True)
 
 ydl_opts = {
@@ -32,7 +31,16 @@ FFMPEG_OPTIONS = {
 @client.event
 async def on_ready():
     print("Bot is now online...")
+<<<<<<< Updated upstream
     await client.change_presence(activity=discord.Game(name="TAKO | Use !help"))
+=======
+    await client.change_presence(activity=discord.Game(name="TAKO | !play"))
+
+global song_queue
+song_queue = ["defaut",]
+global song
+song = []
+>>>>>>> Stashed changes
 
 @client.command(aliases=['h'])
 async def help(ctx, *args):
@@ -41,8 +49,6 @@ async def help(ctx, *args):
     
 @client.command(aliases=['p', 'pl', 'pla', 'sing', 'music', 'song', 'adin'])
 async def play(ctx, *args):
-    url = ' '.join(args)
-    global song_queue
     voice = get(client.voice_clients, guild=ctx.guild)
     channel = ctx.message.author.voice.channel
     if voice and voice.is_connected():
@@ -50,18 +56,20 @@ async def play(ctx, *args):
         await voice.move_to(channel)
     else:
         voice = await channel.connect()
+
+    url = ' '.join(args)
     if len(url) <= 0:
-        await ctx.send('TAKO Does No Understand')
+        await ctx.send('>>> Empty Argument')
         return
     song_queue.append(url)
     await ctx.send(f"Searching... {url.upper()}")
     #song_queue.append(song)
-    global song
+    #global song
     try:
         if not voice.is_playing() and not voice.is_paused():
             with YoutubeDL(ydl_opts) as ydl:
                 info = ydl.extract_info("'"+
-                  song_queue[0]+"'", download=False)
+                  song_queue[1]+"'", download=False)
             if info.get('url', None):
                 data = info
             else:
@@ -94,9 +102,8 @@ async def play(ctx, *args):
             embed.add_field(name='Status', value='Now Playing', inline=True)
             embed.add_field(name='Duration', value=y)
             embed.set_footer(text=current_time)
-            #await ctx.send(f"Now playing: {song['title']} | Song Duration: {y}")
             await ctx.send(embed=embed)
-            song.clear()
+            #song.clear()
         else:
             with YoutubeDL(ydl_opts) as ydl:
                 info = ydl.extract_info("'"+song_queue[len(song_queue)-1]+"'", download=False)
@@ -124,12 +131,13 @@ async def play(ctx, *args):
                 embed.set_thumbnail(url=song['thumbnail'])
                 embed.add_field(name='Song', value=song['title'], inline=True)
                 embed.add_field(name='Duration', value=y)
-                #await ctx.send(f"Added to Queue: {song['title']} | Song Duration: {y}")
                 await ctx.send(embed=embed)
-                song.clear()
+                #song.clear()
     except Exception as e:
-        await ctx.send(f"Something Went doodoo")
-        await ctx.send(e)
+        await ctx.send(f"{e} >>> Try again")
+        song_queue.clear()
+        song_queue.append("defaut")
+        #song_queue = []
         return
 
 
@@ -171,7 +179,7 @@ def play_next(ctx):
     if len(
       song_queue) > 0:
         with YoutubeDL(ydl_opts) as ydl:
-            info = ydl.extract_info("'"+song_queue[0]+"'", download=False)
+            info = ydl.extract_info("'"+song_queue[1]+"'", download=False)
             if info.get("url", None):
                 data = info
             else:
@@ -188,6 +196,7 @@ def play_next(ctx):
                 'author': str(ctx.message.author)
             }
         del song_queue[0]
+        voice.stop()
         voice.play(discord.PCMVolumeTransformer(FFmpegPCMAudio(
             song['url'], **FFMPEG_OPTIONS),
                                                 volume=0.3),
@@ -221,9 +230,9 @@ def play_next(ctx):
 async def skip(ctx):
     voice = get(client.voice_clients, guild=ctx.guild)
     voice.stop()
-    if len(song_queue) > 0:
+    if len(song_queue) > 1:
         with YoutubeDL(ydl_opts) as ydl:
-            info = ydl.extract_info("'"+song_queue[0]+"'", download=False)
+            info = ydl.extract_info("'"+song_queue[1]+"'", download=False)
             if info.get("url", None):
                 data = info
             else:
@@ -269,7 +278,7 @@ async def playskip(ctx, *args):
         song_queue.clear()
         song_queue.append(url)
         with YoutubeDL(ydl_opts) as ydl:
-            info = ydl.extract_info("'"+song_queue[0]+"'", download=False)
+            info = ydl.extract_info("'"+song_queue[1]+"'", download=False)
             if info.get("url", None):
                 data = info
             else:
@@ -310,9 +319,9 @@ async def playskip(ctx, *args):
 async def playnext(ctx, *args):
     url = ' '.join(args)
     song_queue.append(url)
-    song_queue.insert(0, song_queue.pop())
+    song_queue.insert(1, song_queue.pop())
     with YoutubeDL(ydl_opts) as ydl:
-        info = ydl.extract_info("'"+song_queue[0]+"'", download=False)
+        info = ydl.extract_info("'"+song_queue[1]+"'", download=False)
         if info.get("url", None):
             data = info
         else:
@@ -345,8 +354,12 @@ async def playnext(ctx, *args):
 
 @client.command(aliases=['q'])
 async def queuelist(ctx):
-    for x in range(len(song_queue)):
-        await ctx.send(f"{x+1}. {song_queue[x]}")
+    await ctx.send(f">>Now Playing:")
+    await ctx.send(f"0. {song_queue[0]}")
+    if len(song_queue) > 1:
+        await ctx.send(f">>Up Next:")
+        for x in range(1, len(song_queue)):
+            await ctx.send(f"{x+1}. {song_queue[x]}")
 
 @client.command(aliases=['r'])
 async def remove(ctx, *args):
@@ -354,9 +367,12 @@ async def remove(ctx, *args):
         x = int(' '.join(args))
     except:
         ctx.send(">>> Enter a number")
-    temp = (song_queue[x-1]).upper()
-    del song_queue[x-1]
-    await ctx.send(f"{temp} has been removed from queue")
+    if x > 0:
+        temp = (song_queue[x-1]).upper()
+        del song_queue[x-1]
+        await ctx.send(f"{temp} has been removed from queue")
+    else:
+        await ctx.send("Can not remove currently playing")
 
 @client.command(aliases=['switch'])
 async def replace(ctx, *args):
