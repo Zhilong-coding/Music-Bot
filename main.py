@@ -136,6 +136,7 @@ async def play(ctx, *args):
 @client.command()
 async def leave(ctx):
     voice = discord.utils.get(client.voice_clients, guild=ctx.guild)
+    song_queue.clear()
     if voice.is_playing():
         voice.stop()
     if voice.is_connected():
