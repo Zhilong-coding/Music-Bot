@@ -342,7 +342,7 @@ async def remove(ctx, *args):
 @client.command(aliases=["switch"])
 async def replace(ctx, *args):
     fullstring = " ".join(args)
-    if len(fullstring) = 3 
+    if len(fullstring) == 3 
         try:
             origin = int(fullstring[0]) - 1
             target = int(fullstring[2]) - 1
