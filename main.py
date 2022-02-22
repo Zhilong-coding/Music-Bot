@@ -315,38 +315,44 @@ async def playnext(ctx, *args):
 
 @client.command(aliases=["q"])
 async def queuelist(ctx):
-    await ctx.send(">>Now Playing")
+    await ctx.send("---Now Playing---")
     await ctx.send(f"{0}. {song_queue[0]}")
-    await ctx.send(">>Up Next")
-    for x in range(1,len(song_queue)):
-        await ctx.send(f"{x}. {song_queue[x]}")
+    if len(song_queue) > 1:
+        await ctx.send("---Up Next---")
+        for x in range(1,len(song_queue)):
+            await ctx.send(f"{x}. {song_queue[x]}")
 
 
 @client.command(aliases=["r"])
 async def remove(ctx, *args):
     try:
         x = int(" ".join(args))
-    except:
-        ctx.send(">>> Enter a number")
-    if len(song_queue) > 1:
-        temp = (song_queue[x]).upper()
-        del song_queue[x]
-        await ctx.send(f"{temp} has been removed from queue")
+        if x = 0:
+            await ctx.send("Can not remove currently playing")
+        elif len(song_queue) > 1:
+            temp = (song_queue[x]).upper()
+            del song_queue[x]
+            await ctx.send(f"{temp} has been removed from queue")
+        else:
+            await ctx.send(f"Unable to find Song {x}")
+        except:
+            ctx.send(">>> Enter a number")
 
-
+            
 @client.command(aliases=["switch"])
 async def replace(ctx, *args):
     fullstring = " ".join(args)
-    try:
-        origin = int(fullstring[0]) - 1
-        target = int(fullstring[2]) - 1
-    except:
-        ctx.send('>>> Message needs to be 2 numbers with space in between e.g. "3 1"')
-    temp = song_queue[target]
-    song_queue[target] = song_queue[origin]
-    song_queue[origin] = temp
-
-    await ctx.send(f"Song {fullstring[0]} and {fullstring[2]} has been switched")
-
+    if len(fullstring) = 3 
+        try:
+            origin = int(fullstring[0]) - 1
+            target = int(fullstring[2]) - 1
+        except:
+            ctx.send('>>> Message needs to be 2 numbers with space in between e.g. "3 1"')
+        temp = song_queue[target]
+        song_queue[target] = song_queue[origin]
+        song_queue[origin] = temp
+        await ctx.send(f"Song {fullstring[0]} and {fullstring[2]} has been switched")
+    else:
+        await ctx.send('>>> Message needs to be 2 numbers with space in between e.g. (!replace 3 1)')
 
 client.run(os.getenv("TOKEN"))
