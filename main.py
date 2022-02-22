@@ -347,14 +347,14 @@ async def replace(ctx, *args):
             origin = int(fullstring[0]) - 1
             target = int(fullstring[2]) - 1
         except Exception as e:
-            ctx.send('>>> Message needs to be 2 numbers with space in between e.g. "3 1"')
+            await ctx.send('>>> Message needs to be 2 numbers with space in between e.g. "3 1"')
         try:
             temp = song_queue[target]
             song_queue[target] = song_queue[origin]
             song_queue[origin] = temp
             await ctx.send(f"Song {fullstring[0]} and {fullstring[2]} has been switched")
         except Exception as e:
-            ctx.send('>>> Invalid Song number')
+            await ctx.send('>>> Invalid Song number')
     else:
         await ctx.send('>>> Message needs to be 2 numbers with space in between e.g. (!replace 3 1)')
 
