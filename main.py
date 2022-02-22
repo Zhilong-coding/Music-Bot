@@ -20,7 +20,7 @@ ydl_opts = {
     "ignoreerrors": True,
     "logtostderr": False,
     "no_warnings": True,
-    "default_search": "ytsearch1",
+    "default_search": "auto",
 }
 FFMPEG_OPTIONS = {
     "before_options": "-reconnect 1 -reconnect_streamed 1 -reconnect_delay_max 5",
@@ -46,7 +46,7 @@ async def play(ctx, *args):
     else:
         voice = await channel.connect()
     if len(url) <= 0:
-        await ctx.send("TAKO Does No Understand")
+        await ctx.send("Enter a song name")
         return
     song_queue.append(url)
     await ctx.send(f"Searching... {url.upper()}")
@@ -347,11 +347,14 @@ async def replace(ctx, *args):
             origin = int(fullstring[0]) - 1
             target = int(fullstring[2]) - 1
         except Exception as e:
-            ctx.send('>>> Message needs to be 2 numbers with space in between e.g. "3 1"')
-        temp = song_queue[target]
-        song_queue[target] = song_queue[origin]
-        song_queue[origin] = temp
-        await ctx.send(f"Song {fullstring[0]} and {fullstring[2]} has been switched")
+            ctx.send('>>> Message needs to be 2 numbers with space in between e.g. "3 1"')\
+        try:
+            temp = song_queue[target]
+            song_queue[target] = song_queue[origin]
+            song_queue[origin] = temp
+            await ctx.send(f"Song {fullstring[0]} and {fullstring[2]} has been switched")
+        except Exception as e:
+            ctx.send('>>> Invalid Song number')
     else:
         await ctx.send('>>> Message needs to be 2 numbers with space in between e.g. (!replace 3 1)')
 
