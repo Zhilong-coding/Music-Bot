@@ -335,8 +335,8 @@ async def remove(ctx, *args):
             await ctx.send(f"{temp} has been removed from queue")
         else:
             await ctx.send(f"Unable to find Song {x}")
-        except:
-            ctx.send(">>> Enter a number")
+    except Exception as e:
+        ctx.send(">>> Enter a number")
 
             
 @client.command(aliases=["switch"])
