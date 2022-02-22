@@ -347,7 +347,7 @@ async def replace(ctx, *args):
             origin = int(fullstring[0]) - 1
             target = int(fullstring[2]) - 1
         except Exception as e:
-            ctx.send('>>> Message needs to be 2 numbers with space in between e.g. "3 1"')\
+            ctx.send('>>> Message needs to be 2 numbers with space in between e.g. "3 1"')
         try:
             temp = song_queue[target]
             song_queue[target] = song_queue[origin]
