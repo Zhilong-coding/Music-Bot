@@ -327,7 +327,7 @@ async def queuelist(ctx):
 async def remove(ctx, *args):
     try:
         x = int(" ".join(args))
-        if x = 0:
+        if x == 0:
             await ctx.send("Can not remove currently playing")
         elif len(song_queue) > 1:
             temp = (song_queue[x]).upper()
