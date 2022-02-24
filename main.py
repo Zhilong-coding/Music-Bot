@@ -54,6 +54,7 @@ async def play(ctx, *args):
     global song
     try:
         if not voice.is_playing() and not voice.is_paused():
+            ydl_opts["default_search"]="auto"
             with YoutubeDL(ydl_opts) as ydl:
                 info = ydl.extract_info(song_queue[1], download=False)
             if info.get("url", None):
@@ -95,6 +96,7 @@ async def play(ctx, *args):
             await ctx.send(embed=embed)
             song.clear()
         else:
+            ydl_opts["default_search"]="auto"
             with YoutubeDL(ydl_opts) as ydl:
                 info = ydl.extract_info(
                     song_queue[-1], download=False
@@ -128,9 +130,87 @@ async def play(ctx, *args):
                 await ctx.send(embed=embed)
                 song.clear()
     except Exception as e:
-        del song_queue[-1]
-        await ctx.send(e)
-        return
+        try:
+        if not voice.is_playing() and not voice.is_paused():
+            ydl_opts["default_search"]="ytsearch1"
+            with YoutubeDL(ydl_opts) as ydl:
+                info = ydl.extract_info(song_queue[1], download=False)
+            if info.get("url", None):
+                data = info
+            else:
+                data = info["entries"][0]
+            TITLE = data["title"]
+            URL = data["url"]
+            DURATION = data["duration"]
+            THUMBNAIL = data["thumbnail"]
+            song = {
+                "title": TITLE,
+                "url": URL,
+                "duration": DURATION,
+                "thumbnail": THUMBNAIL,
+            }
+            del song_queue[0]
+            voice.play(
+                discord.PCMVolumeTransformer(
+                    FFmpegPCMAudio(song["url"], **FFMPEG_OPTIONS), volume=0.3
+                ),
+                after=lambda e: play_next(ctx),
+            )
+            voice.is_playing()
+            x = divmod(song["duration"], 60)
+            y = str(f"{x[0]:02d}") + ":" + str(f"{x[1]:02d}")
+            now = datetime.now() + timedelta(hours=2)
+            current_time = now.strftime("%H:%M")
+            embed = discord.Embed(
+                title=song["title"],
+                description="Requested by: \n" + str(ctx.message.author),
+                color=discord.Color.purple(),
+            )
+            embed.set_thumbnail(url=song["thumbnail"])
+            embed.add_field(name="Status", value="Now Playing", inline=True)
+            embed.add_field(name="Duration", value=y)
+            embed.set_footer(text=current_time)
+            # await ctx.send(f"Now playing: {song['title']} | Song Duration: {y}")
+            await ctx.send(embed=embed)
+            song.clear()
+        else:
+            ydl_opts["default_search"]="ytsearch1"
+            with YoutubeDL(ydl_opts) as ydl:
+                info = ydl.extract_info(
+                    song_queue[-1], download=False
+                )
+                if info.get("url", None):
+                    data = info
+                else:
+                    data = info["entries"][0]
+                TITLE = data["title"]
+                URL = data["url"]
+                DURATION = data["duration"]
+                THUMBNAIL = data["thumbnail"]
+                song = {
+                    "title": TITLE,
+                    "url": URL,
+                    "duration": DURATION,
+                    "thumbnail": THUMBNAIL,
+                    "author": str(ctx.message.author),
+                }
+                x = divmod(song["duration"], 60)
+                y = str(f"{x[0]:02d}") + ":" + str(f"{x[1]:02d}")
+                embed = discord.Embed(
+                    title="Added to Queue",
+                    description="Requested By: \n" + song["author"],
+                    color=discord.Color.purple(),
+                )
+                embed.set_thumbnail(url=song["thumbnail"])
+                embed.add_field(name="Song", value=song["title"], inline=True)
+                embed.add_field(name="Duration", value=y)
+                # await ctx.send(f"Added to Queue: {song['title']} | Song Duration: {y}")
+                await ctx.send(embed=embed)
+                song.clear()
+        except Exception as e:
+            del song_queue[-1]
+            await ctx.send(e)
+            return
 
 
 @client.command()
@@ -345,8 +425,8 @@ async def replace(ctx, *args):
     fullstring = " ".join(args)
     if len(fullstring) == 3:
         try:
-            origin = int(fullstring[0]) - 1
-            target = int(fullstring[2]) - 1
+            origin = int(fullstring[0])
+            target = int(fullstring[2])
         except Exception as e:
             await ctx.send('>>> Message needs to be 2 numbers with space in between e.g. "3 1"')
         try:
