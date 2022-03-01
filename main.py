@@ -41,7 +41,6 @@ async def play(ctx, *args):
     voice = get(client.voice_clients, guild=ctx.guild)
     channel = ctx.message.author.voice.channel
     if voice and voice.is_connected():
-        # song_queue.clear()
         await voice.move_to(channel)
     else:
         voice = await channel.connect()
@@ -50,16 +49,26 @@ async def play(ctx, *args):
         return
     song_queue.append(url)
     await ctx.send(f"Searching... {url.upper()}")
-    # song_queue.append(song)
     global song
     try:
         if not voice.is_playing() and not voice.is_paused():
             with YoutubeDL(ydl_opts) as ydl:
-                info = ydl.extract_info(song_queue[1], download=False)
-            if info.get("url", None):
-                data = info
-            else:
-                data = info["entries"][0]
+                try:
+                    info = ydl.extract_info(song_queue[1], download=False)
+                    if info.get("url", None):
+                        data = info
+                    else:
+                        data = info["entries"][0]
+                except AttributeError:
+                    try:
+                        info = ydl.extract_info(f"'{song_queue[1]}'", download=False)
+                        if info.get("url", None):
+                            data = info
+                        else:
+                            data = info["entries"][0]
+                    except Exception:
+                        del song_queue[-1]
+                        return
             TITLE = data["title"]
             URL = data["url"]
             DURATION = data["duration"]
@@ -96,13 +105,23 @@ async def play(ctx, *args):
             song.clear()
         else:
             with YoutubeDL(ydl_opts) as ydl:
-                info = ydl.extract_info(
-                    song_queue[-1], download=False
-                )
-                if info.get("url", None):
-                    data = info
-                else:
-                    data = info["entries"][0]
+                with YoutubeDL(ydl_opts) as ydl:
+                    try:
+                        info = ydl.extract_info(song_queue[-1], download=False)
+                        if info.get("url", None):
+                            data = info
+                        else:
+                            data = info["entries"][0]
+                    except AttributeError:
+                        try:
+                            info = ydl.extract_info(f"'{song_queue[-1]}'", download=False)
+                            if info.get("url", None):
+                                data = info
+                            else:
+                                data = info["entries"][0]
+                        except Exception:
+                            del song_queue[-1]
+                            return
                 TITLE = data["title"]
                 URL = data["url"]
                 DURATION = data["duration"]
@@ -171,22 +190,29 @@ def play_next(ctx):
     voice = get(client.voice_clients, guild=ctx.guild)
     if len(song_queue) > 1:
         with YoutubeDL(ydl_opts) as ydl:
-            info = ydl.extract_info(song_queue[1], download=False)
-            if info.get("url", None):
-                data = info
-            else:
-                data = info["entries"][0]
-            TITLE = data["title"]
-            URL = data["url"]
-            DURATION = data["duration"]
-            THUMBNAIL = data["thumbnail"]
-            song = {
-                "title": TITLE,
-                "url": URL,
-                "duration": DURATION,
-                "thumbnail": THUMBNAIL,
-                "author": str(ctx.message.author),
-            }
+                try:
+                    info = ydl.extract_info(song_queue[1], download=False)
+                    if info.get("url", None):
+                        data = info
+                    else:
+                        data = info["entries"][0]
+                except AttributeError:
+                    info = ydl.extract_info(f"'{song_queue[1]}'", download=False)
+                    if info.get("url", None):
+                        data = info
+                    else:
+                        data = info["entries"][0]
+        TITLE = data["title"]
+        URL = data["url"]
+        DURATION = data["duration"]
+        THUMBNAIL = data["thumbnail"]
+        song = {
+            "title": TITLE,
+            "url": URL,
+            "duration": DURATION,
+            "thumbnail": THUMBNAIL,
+            "author": str(ctx.message.author),
+        }
         del song_queue[0]
         voice.play(
             discord.PCMVolumeTransformer(
@@ -197,7 +223,6 @@ def play_next(ctx):
         voice.is_playing()
         x = divmod(song["duration"], 60)
         y = str(f"{x[0]:02d}") + ":" + str(f"{x[1]:02d}")
-        # ctx.send(f"Now playing: {song['title']} | Song Duration: {y}")
         now = datetime.now() + timedelta(hours=2)
         current_time = now.strftime("%H:%M")
         embed = discord.Embed(
@@ -230,50 +255,59 @@ async def skip(ctx):
 @client.command(aliases=["ps"])
 async def playskip(ctx, *args):
     url = " ".join(args)
-    voice = get(client.voice_clients, guild=ctx.guild)
-    if voice.is_playing():
-        voice.stop()
-        song_queue.clear()
-        song_queue.append(url)
-        with YoutubeDL(ydl_opts) as ydl:
-            info = ydl.extract_info(song_queue[1], download=False)
+    song_queue.append(url)
+    song_queue.insert(1, song_queue.pop())
+    with YoutubeDL(ydl_opts) as ydl:
+        try:
+            info = ydl.extract_info(f"'{song_queue[1]}'", download=False)
             if info.get("url", None):
                 data = info
             else:
                 data = info["entries"][0]
-            TITLE = data["title"]
-            URL = data["url"]
-            DURATION = data["duration"]
-            THUMBNAIL = data["thumbnail"]
-            song = {
-                "title": TITLE,
-                "url": URL,
-                "duration": DURATION,
-                "thumbnail": THUMBNAIL,
-                "author": str(ctx.message.author),
-            }
-        del song_queue[0]
-        voice.play(
-            discord.PCMVolumeTransformer(
-                FFmpegPCMAudio(song["url"], **FFMPEG_OPTIONS), volume=0.3
-            ),
-            after=lambda e: play_next(ctx),
-        )
-        voice.is_playing()
-        x = divmod(song["duration"], 60)
-        y = str(f"{x[0]:02d}") + ":" + str(f"{x[1]:02d}")
-        now = datetime.now() + timedelta(hours=2)
-        current_time = now.strftime("%H:%M")
-        embed = discord.Embed(
-            title=song["title"],
-            description="Requested by: \n" + str(ctx.message.author),
-            color=discord.Color.purple(),
-        )
-        embed.set_thumbnail(url=song["thumbnail"])
-        embed.add_field(name="Status", value="Now Playing", inline=True)
-        embed.add_field(name="Duration", value=y)
-        embed.set_footer(text=current_time)
-        await ctx.send(embed=embed)
+        except Exception:
+            del song_queue[-1]
+            return
+    # with YoutubeDL(ydl_opts) as ydl:
+    #     try:
+    #         info = ydl.extract_info(song_queue[1], download=False)
+    #         if info.get("url", None):
+    #             data = info
+    #         else:
+    #             data = info["entries"][0]
+    #     except AttributeError:
+    #         info = ydl.extract_info(f"'{song_queue[1]}'", download=False)
+    #         if info.get("url", None):
+    #             data = info
+    #         else:
+    #             data = info["entries"][0]
+    #     TITLE = data["title"]
+    #     URL = data["url"]
+    #     DURATION = data["duration"]
+    #     THUMBNAIL = data["thumbnail"]
+    #     song = {
+    #         "title": TITLE,
+    #         "url": URL,
+    #         "duration": DURATION,
+    #         "thumbnail": THUMBNAIL,
+    #         "author": str(ctx.message.author),
+    #     }
+    #     x = divmod(song["duration"], 60)
+    #     y = str(f"{x[0]:02d}") + ":" + str(f"{x[1]:02d}")
+    #     now = datetime.now() + timedelta(hours=2)
+    #     current_time = now.strftime("%H:%M")
+    #     embed = discord.Embed(
+    #         title="Playing Next",
+    #         description="Requested by: \n" + str(ctx.message.author),
+    #         color=discord.Color.purple(),
+    #     )
+    #     embed.set_thumbnail(url=song["thumbnail"])
+    #     embed.add_field(name="Song", value=song["title"], inline=True)
+    #     embed.add_field(name="Duration", value=y)
+    #     embed.set_footer(text=current_time)
+    #     await ctx.send(embed=embed)
+    voice = get(client.voice_clients, guild=ctx.guild)
+    if voice.is_playing():
+        voice.stop()
 
 
 @client.command(aliases=["pn"])
@@ -282,11 +316,22 @@ async def playnext(ctx, *args):
     song_queue.append(url)
     song_queue.insert(1, song_queue.pop())
     with YoutubeDL(ydl_opts) as ydl:
-        info = ydl.extract_info(song_queue[1], download=False)
-        if info.get("url", None):
-            data = info
-        else:
-            data = info["entries"][0]
+        try:
+            info = ydl.extract_info(song_queue[1], download=False)
+            if info.get("url", None):
+                data = info
+            else:
+                data = info["entries"][0]
+        except AttributeError:
+            try:
+                info = ydl.extract_info(f"'{song_queue[1]}'", download=False)
+                if info.get("url", None):
+                    data = info
+                else:
+                    data = info["entries"][0]
+            except Exception:
+                del song_queue[-1]
+                return
         TITLE = data["title"]
         URL = data["url"]
         DURATION = data["duration"]
