@@ -40,10 +40,13 @@ async def play(ctx, *args):
     global song_queue
     voice = get(client.voice_clients, guild=ctx.guild)
     channel = ctx.message.author.voice.channel
-    if voice and voice.is_connected():
+    if voice and voice.channel.id == channel.id:
         await voice.move_to(channel)
     else:
-        voice = await channel.connect()
+        try:
+            voice = await channel.connect()
+        except:
+            await ctx.send(f"Already Connected")
     if len(url) <= 0:
         await ctx.send("Enter a song name")
         return
@@ -69,16 +72,16 @@ async def play(ctx, *args):
                     except Exception:
                         del song_queue[-1]
                         return
-            TITLE = data["title"]
-            URL = data["url"]
-            DURATION = data["duration"]
-            THUMBNAIL = data["thumbnail"]
-            song = {
-                "title": TITLE,
-                "url": URL,
-                "duration": DURATION,
-                "thumbnail": THUMBNAIL,
-            }
+                TITLE = data["title"]
+                URL = data["url"]
+                DURATION = data["duration"]
+                THUMBNAIL = data["thumbnail"]
+                song = {
+                    "title": TITLE,
+                    "url": URL,
+                    "duration": DURATION,
+                    "thumbnail": THUMBNAIL,
+                }
             del song_queue[0]
             voice.play(
                 discord.PCMVolumeTransformer(
@@ -404,4 +407,8 @@ async def replace(ctx, *args):
     else:
         await ctx.send('>>> Message needs to be 2 numbers with space in between e.g. (!replace 3 1)')
 
-client.run(os.getenv("TOKEN"))
+
+#Assign Token
+Token = os.getenv("TOKEN")
+# Run client with token
+client.run(Token)
